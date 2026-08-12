@@ -1,8 +1,14 @@
-import { schema } from "./schema"
+import { schema, type BackendContext } from "./schema"
 import { createYoga } from "graphql-yoga"
 import { createServer } from "node:http"
 
-const yoga = createYoga({ schema })
+const yoga = createYoga<BackendContext>({
+    schema,
+    context: ({ request }) => ({
+        // The frontend sends this after login. Resolvers use it to scope data.
+        currentUserId: request.headers.get('x-user-id') ?? undefined
+    })
+})
 const server = createServer(yoga)
 
 server.listen(4000, () => {
