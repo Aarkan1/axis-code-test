@@ -63,7 +63,10 @@ export const CamerasPage = ({ session, onLogout }: CamerasPageProps) => {
                     <Text size={400}>Signed in as {session.user.name}.</Text>
                 </div>
 
-                <Button onClick={handleLogout}>Log out</Button>
+                <div className="header-actions">
+                    {session.user.isAdmin && <Button onClick={() => navigate('/admin')}>Admin</Button>}
+                    <Button onClick={handleLogout}>Log out</Button>
+                </div>
             </section>
 
             {isLoading && (
