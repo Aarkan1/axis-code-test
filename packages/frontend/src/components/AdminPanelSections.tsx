@@ -2,6 +2,8 @@ import { Button, Card, Input, Text } from '@fluentui/react-components'
 import type { FormEvent } from 'react'
 
 import type { AdminDataResponse } from '../api/graphql'
+import { AdminSelect } from './AdminSelect'
+import { CameraIcon, NetworkIcon, ShieldIcon } from './Icons'
 
 type AdminActionsProps = {
     adminData: AdminDataResponse
@@ -25,7 +27,7 @@ type AdminActionsProps = {
 type AdminUsersProps = {
     adminData: AdminDataResponse
     isSaving: boolean
-    onRemoveCamera: (userId: string, cameraId: string) => void
+    onRemoveCamera: (userId: string, cameraId: string, cameraLabel: string, userName: string) => void
 }
 
 export const AdminActions = ({
@@ -48,9 +50,12 @@ export const AdminActions = ({
 }: AdminActionsProps) => (
     <section className="admin-actions">
         <Card className="admin-card">
-            <Text as="h2" size={500} weight="semibold">
-                Create camera
-            </Text>
+            <div className="camera-card-header">
+                <CameraIcon className="card-icon" />
+                <Text as="h2" size={500} weight="semibold">
+                    Create camera
+                </Text>
+            </div>
             <form className="admin-form" onSubmit={onCreateCamera}>
                 <UserSelect label="User" onChange={onSetCreateUserId} users={adminData.users} value={createUserId} />
                 <label className="form-field">
@@ -72,23 +77,25 @@ export const AdminActions = ({
         </Card>
 
         <Card className="admin-card">
-            <Text as="h2" size={500} weight="semibold">
-                Add existing camera
-            </Text>
+            <div className="camera-card-header">
+                <NetworkIcon className="card-icon" />
+                <Text as="h2" size={500} weight="semibold">
+                    Assign camera
+                </Text>
+            </div>
             <form className="admin-form" onSubmit={onAddExistingCamera}>
                 <UserSelect label="User" onChange={onSetExistingUserId} users={adminData.users} value={existingUserId} />
-                <label className="form-field">
-                    <Text weight="semibold">Camera</Text>
-                    <select value={existingCameraId} onChange={(event) => onSetExistingCameraId(event.target.value)}>
-                        {adminData.allCameras.map((camera) => (
-                            <option key={camera.id} value={camera.id}>
-                                {camera.niceName ?? camera.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <AdminSelect
+                    label="Camera"
+                    onChange={onSetExistingCameraId}
+                    options={adminData.allCameras.map((camera) => ({
+                        label: camera.niceName ?? camera.name,
+                        value: camera.id
+                    }))}
+                    value={existingCameraId}
+                />
                 <Button appearance="primary" disabled={isSaving} type="submit">
-                    Add to user
+                    Assign to user
                 </Button>
             </form>
         </Card>
@@ -99,9 +106,12 @@ export const AdminUsers = ({ adminData, isSaving, onRemoveCamera }: AdminUsersPr
     <section className="admin-users">
         {adminData.users.map((user) => (
             <Card className="admin-card" key={user.id}>
-                <Text as="h2" size={500} weight="semibold">
-                    {user.name}
-                </Text>
+                <div className="camera-card-header">
+                    <ShieldIcon className="card-icon" />
+                    <Text as="h2" size={500} weight="semibold">
+                        {user.name}
+                    </Text>
+                </div>
                 {user.cameras.length === 0 ? (
                     <Text>No cameras assigned.</Text>
                 ) : (
@@ -109,7 +119,12 @@ export const AdminUsers = ({ adminData, isSaving, onRemoveCamera }: AdminUsersPr
                         {user.cameras.map((camera) => (
                             <div className="admin-camera-row" key={camera.id}>
                                 <Text>{camera.niceName ?? camera.name}</Text>
-                                <Button disabled={isSaving} onClick={() => onRemoveCamera(user.id, camera.id)}>
+                                <Button
+                                    disabled={isSaving}
+                                    onClick={() =>
+                                        onRemoveCamera(user.id, camera.id, camera.niceName ?? camera.name, user.name)
+                                    }
+                                >
                                     Remove
                                 </Button>
                             </div>
@@ -132,14 +147,10 @@ const UserSelect = ({
     users: AdminDataResponse['users']
     value: string
 }) => (
-    <label className="form-field">
-        <Text weight="semibold">{label}</Text>
-        <select value={value} onChange={(event) => onChange(event.target.value)}>
-            {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                    {user.name}
-                </option>
-            ))}
-        </select>
-    </label>
+    <AdminSelect
+        label={label}
+        onChange={onChange}
+        options={users.map((user) => ({ label: user.name, value: user.id }))}
+        value={value}
+    />
 )

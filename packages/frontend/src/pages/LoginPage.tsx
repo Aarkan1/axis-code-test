@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { login, type AuthPayload } from '../api/graphql'
+import { AlertIcon, NetworkIcon } from '../components/Icons'
 
 type LoginPageProps = {
     onLogin: (session: AuthPayload) => void
@@ -35,11 +36,16 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     return (
         <main className="login-shell">
             <Card className="login-card">
-                <div className="hero">
-                    <Text as="h1" size={800} weight="semibold">
-                        Sign in
-                    </Text>
-                    <Text size={400}>Use your camera dashboard account to continue.</Text>
+                <div className="login-brand">
+                    <NetworkIcon className="hero-icon" />
+                    <div className="hero">
+                        <Text as="h1" size={800} weight="semibold">
+                            Sign in
+                        </Text>
+                        <Text className="subtle-text" size={400}>
+                            Use your camera dashboard account to continue.
+                        </Text>
+                    </div>
                 </div>
 
                 <form className="login-form" onSubmit={handleSubmit}>
@@ -65,7 +71,8 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
                     </label>
 
                     {errorMessage && (
-                        <Card className="state-card error-card">
+                        <Card className="message-card message-card--error">
+                            <AlertIcon className="message-icon" />
                             <Text className="error-text" weight="semibold">
                                 {errorMessage}
                             </Text>

@@ -1,9 +1,13 @@
-import { Button, Card, Spinner, Text } from '@fluentui/react-components'
+import { Button, Card, Image, Spinner, Text, Tooltip } from '@fluentui/react-components'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { fetchCurrentUserCameras, type CamerasResponse } from '../api/graphql'
+import { AlertIcon, CameraIcon, InfoIcon } from '../components/Icons'
 import type { StoredSession } from '../auth'
+
+const cameraDeviceImageUrl =
+    'https://www.axis.com/sites/axis/files/styles/standard_1360_x_auto/public/2023-05/m4218_lv_wall_angle_left_2301-Productimageswithcropping.png.webp?itok=jVaylaKQ'
 
 type CamerasPageProps = {
     session: StoredSession
@@ -54,13 +58,18 @@ export const CamerasPage = ({ session, onLogout }: CamerasPageProps) => {
     }, [session.token])
 
     return (
-        <main className="app-shell">
+        <main className="app-shell products-page">
             <section className="dashboard-header">
                 <div className="hero">
-                    <Text as="h1" size={800} weight="semibold">
-                        Camera Dashboard
+                    <div className="hero-title">
+                        <CameraIcon className="hero-icon" />
+                        <Text as="h1" size={800} weight="semibold">
+                            Network cameras
+                        </Text>
+                    </div>
+                    <Text className="subtle-text" size={400}>
+                        Signed in as {session.user.name}.
                     </Text>
-                    <Text size={400}>Signed in as {session.user.name}.</Text>
                 </div>
 
                 <div className="header-actions">
@@ -76,34 +85,50 @@ export const CamerasPage = ({ session, onLogout }: CamerasPageProps) => {
             )}
 
             {!isLoading && errorMessage && (
-                <Card className="state-card">
-                    <Text weight="semibold">Could not load cameras</Text>
-                    <Text>{errorMessage}</Text>
+                <Card className="message-card message-card--error">
+                    <AlertIcon className="message-icon" />
+                    <div className="hero">
+                        <Text weight="semibold">Could not load cameras</Text>
+                        <Text>{errorMessage}</Text>
+                    </div>
                 </Card>
             )}
 
             {!isLoading && cameraData && (
                 <section className="camera-section">
-                    <Text as="h2" size={600} weight="semibold">
+                    <Text as="h2" className="products-section-title" size={500} weight="semibold">
                         Cameras for {cameraData.me.name}
                     </Text>
 
                     {cameraData.cameras.length === 0 ? (
-                        <Card className="state-card">
+                        <Card className="message-card message-card--info">
+                            <InfoIcon className="message-icon" />
                             <Text>This user does not have any cameras yet.</Text>
                         </Card>
                     ) : (
-                        <div className="camera-grid">
-                            {cameraData.cameras.map((camera) => (
-                                <Card className="camera-card" key={camera.id}>
-                                    <Text size={500} weight="semibold">
-                                        {camera.niceName ?? camera.name}
-                                    </Text>
-                                    {camera.niceName && <Text>{camera.name}</Text>}
-                                    <Text className="camera-address">{camera.address}</Text>
-                                </Card>
-                            ))}
-                        </div>
+                        <>
+                            <Text className="subtle-text" size={400}>
+                                Your assigned Axis camera devices.
+                            </Text>
+                            <div className="camera-grid">
+                                {cameraData.cameras.map((camera) => (
+                                    <Card className="camera-card product-card" key={camera.id}>
+                                        <Image alt="" className="product-image" src={cameraDeviceImageUrl} />
+                                        <Text className="product-name" size={500} weight="semibold">
+                                            {camera.niceName ?? camera.name}
+                                        </Text>
+                                        {camera.niceName && (
+                                            <Tooltip content="Device name" positioning="above" relationship="label">
+                                                <Text className="product-detail">{camera.name}</Text>
+                                            </Tooltip>
+                                        )}
+                                        <Tooltip content="Device address" positioning="above" relationship="label">
+                                            <Text className="camera-address">{camera.address}</Text>
+                                        </Tooltip>
+                                    </Card>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </section>
             )}
