@@ -1,5 +1,23 @@
 # Axis code test
 
+Completed the Axis coding test.
+
+Backend uses local data as a mock database, complete with login credentials for three users:
+
+| username | password |
+|---|---|
+| alice | alice-password |
+| bob | bob-password |
+| admin | admin-password |
+
+alice and bob can only view their own assigned cameras.
+
+Only the admin user has authority to manage cameras and assign to other users.
+
+[Screencast from 2026-08-12 16:12:43.webm](https://github.com/user-attachments/assets/5f282a38-ea7a-4187-b21a-ddafdf155da9)
+
+# Assignment details
+
 ## Getting started
 
 This is a monorepo with two packages, backend and frontend, using npm workspaces. Easiest way to get started with the test is to fork this repo do the tasks there. When you're done send us a link to your fork.
