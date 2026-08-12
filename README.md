@@ -11,7 +11,7 @@ If you run into any issues or have questions don't hesitate to contact the techn
 - NodeJS
 - GitHub
 
-### Start dev eniroment
+### Start dev environment
 
 1. `npm install`
 2. `npm run dev` to start both backend and frontend.
