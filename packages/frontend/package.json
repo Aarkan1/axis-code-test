@@ -4,8 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "echo \"Add start-script for the frontend here\""
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
+    "preview": "vite preview"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "@fluentui/react-components": "^9.74.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
+  }
 }
