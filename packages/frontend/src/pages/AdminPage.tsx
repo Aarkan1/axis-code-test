@@ -1,4 +1,11 @@
-import { Button, Card, Spinner, Text } from "@fluentui/react-components";
+import {
+  Button,
+  Card,
+  makeStyles,
+  mergeClasses,
+  Spinner,
+  Text,
+} from "@fluentui/react-components";
 import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -27,6 +34,7 @@ type PendingRemoval = {
 };
 
 export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
+  const styles = useStyles();
   const navigate = useNavigate();
   const [adminData, setAdminData] = useState<AdminDataResponse | null>(null);
   const [createUserId, setCreateUserId] = useState("");
@@ -37,6 +45,7 @@ export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
   const [address, setAddress] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [hasShownNotification, setHasShownNotification] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(
@@ -79,6 +88,12 @@ export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
   useEffect(() => {
     void loadAdminData();
   }, [session.token]);
+
+  useEffect(() => {
+    if (errorMessage || successMessage) {
+      setHasShownNotification(true);
+    }
+  }, [errorMessage, successMessage]);
 
   const runAdminAction = async (
     action: () => Promise<unknown>,
@@ -157,54 +172,77 @@ export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
     );
   };
 
+  const notificationMessage = errorMessage ?? successMessage;
+  const isErrorNotification = Boolean(errorMessage);
+  const shouldShowNotificationSlot =
+    hasShownNotification || Boolean(notificationMessage);
+
   return (
-    <main className="app-shell admin-selector-page">
-      <section className="dashboard-header admin-selector-header">
-        <div className="hero">
-          <div className="hero-title">
-            <ShieldIcon className="hero-icon" />
+    <main className={styles.shell}>
+      <section className={styles.dashboardHeader}>
+        <div className={styles.hero}>
+          <div className={styles.heroTitle}>
+            <ShieldIcon className={styles.heroIcon} />
             <Text as="h1" size={800} weight="semibold">
               Camera administration
             </Text>
           </div>
-          <Text className="subtle-text" size={400}>
+          <Text className={styles.subtleText} size={400}>
             Manage users and their camera assignments.
           </Text>
         </div>
 
-        <div className="header-actions">
+        <div className={styles.headerActions}>
           <Button onClick={() => navigate("/")}>Home</Button>
           <Button onClick={handleLogout}>Log out</Button>
         </div>
       </section>
 
       {isLoading && !adminData && (
-        <div className="state-message">
+        <div className={styles.stateMessage}>
           <Spinner label="Loading admin data" />
         </div>
       )}
 
-      <div className="notification-slot">
-        {errorMessage && (
-          <Card className="message-card message-card--error">
-            <AlertIcon className="message-icon" />
-            <Text className="error-text" weight="semibold">
-              {errorMessage}
+      {shouldShowNotificationSlot && (
+        <div className={styles.notificationSlot}>
+          <Card
+            aria-hidden={!notificationMessage}
+            className={mergeClasses(
+              styles.messageCard,
+              isErrorNotification ? styles.messageError : styles.messageSuccess,
+              !notificationMessage && styles.messageHidden,
+            )}
+            role={
+              notificationMessage
+                ? isErrorNotification
+                  ? "alert"
+                  : "status"
+                : undefined
+            }
+          >
+            {isErrorNotification ? (
+              <AlertIcon
+                className={mergeClasses(styles.messageIcon, styles.errorText)}
+              />
+            ) : (
+              <SuccessIcon
+                className={mergeClasses(styles.messageIcon, styles.successText)}
+              />
+            )}
+            <Text
+              className={isErrorNotification ? styles.errorText : undefined}
+              weight="semibold"
+            >
+              {notificationMessage ?? "No notification"}
             </Text>
           </Card>
-        )}
-
-        {!errorMessage && successMessage && (
-          <Card className="message-card message-card--success">
-            <SuccessIcon className="message-icon" />
-            <Text weight="semibold">{successMessage}</Text>
-          </Card>
-        )}
-      </div>
+        </div>
+      )}
 
       {adminData && (
-        <section className="admin-selector-layout">
-          <aside className="admin-sidebar">
+        <section className={styles.selectorLayout}>
+          <aside className={styles.sidebar}>
             <AdminActions
               address={address}
               adminData={adminData}
@@ -224,8 +262,8 @@ export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
               onSetNiceName={setNiceName}
             />
           </aside>
-          <section className="admin-results">
-            <Text as="h2" className="admin-series-title" size={700}>
+          <section className={styles.results}>
+            <Text as="h2" size={700}>
               Users and cameras
             </Text>
             <AdminUsers
@@ -247,3 +285,115 @@ export const AdminPage = ({ session, onLogout }: AdminPageProps) => {
     </main>
   );
 };
+
+const useStyles = makeStyles({
+  shell: {
+    animationName: "page-in",
+    animationDuration: "260ms",
+    animationTimingFunction: "ease-out",
+    boxSizing: "border-box",
+    color: "#383838",
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.6rem",
+    marginLeft: "auto",
+    marginRight: "auto",
+    maxWidth: "1180px",
+    minHeight: "100vh",
+    padding: "1.8rem 0.6rem 3rem",
+    position: "relative",
+  },
+  dashboardHeader: {
+    alignItems: "flex-start",
+    display: "flex",
+    gap: "1rem",
+    justifyContent: "space-between",
+  },
+  hero: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+  },
+  heroTitle: {
+    alignItems: "center",
+    display: "flex",
+    gap: "0.8rem",
+  },
+  heroIcon: {
+    color: "#4a4a4a",
+    flexShrink: 0,
+  },
+  subtleText: {
+    color: "var(--muted)",
+  },
+  headerActions: {
+    display: "flex",
+    gap: "0.8rem",
+    justifyContent: "space-between",
+  },
+  stateMessage: {
+    alignItems: "center",
+    display: "flex",
+    justifyContent: "center",
+    minHeight: "160px",
+  },
+  notificationSlot: {
+    height: "90px",
+  },
+  messageCard: {
+    alignItems: "flex-start",
+    boxSizing: "border-box",
+    display: "flex",
+    gap: "12px",
+    height: "90px",
+    overflow: "hidden",
+    padding: "16px",
+    border: `1px solid #ddd9d2`,
+    borderRadius: "6px",
+    boxShadow: "0 1px 5px rgba(0, 0, 0, 0.1)",
+  },
+  messageError: {
+    backgroundColor: "var(--error-bg)",
+    borderBottomColor: "rgba(177, 14, 28, 0.32)",
+    borderLeftColor: "rgba(177, 14, 28, 0.32)",
+    borderRightColor: "rgba(177, 14, 28, 0.32)",
+    borderTopColor: "rgba(177, 14, 28, 0.32)",
+  },
+  messageSuccess: {
+    backgroundColor: "var(--success-bg)",
+    borderBottomColor: "rgba(16, 124, 16, 0.28)",
+    borderLeftColor: "rgba(16, 124, 16, 0.28)",
+    borderRightColor: "rgba(16, 124, 16, 0.28)",
+    borderTopColor: "rgba(16, 124, 16, 0.28)",
+  },
+  messageHidden: {
+    visibility: "hidden",
+  },
+  messageIcon: {
+    flexShrink: 0,
+  },
+  errorText: {
+    color: "var(--error)",
+  },
+  successText: {
+    color: "var(--success)",
+  },
+  selectorLayout: {
+    alignItems: "start",
+    display: "grid",
+    gap: "1.1rem",
+    gridTemplateColumns: "350px minmax(0, 1fr)",
+  },
+  sidebar: {
+    borderRadius: "4px",
+    position: "sticky",
+    top: "1.2rem",
+    borderRight: "3px solid #ddd9d2",
+    paddingRight: "1rem",
+  },
+  results: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.9rem",
+  },
+});
