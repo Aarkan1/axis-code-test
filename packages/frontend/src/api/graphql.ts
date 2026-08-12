@@ -12,6 +12,11 @@ export type Camera = {
     address: string
 }
 
+export type AuthPayload = {
+    token: string
+    user: User
+}
+
 export type CamerasResponse = {
     me: User
     cameras: Camera[]
@@ -21,6 +26,18 @@ type GraphQLResponse<TData> = {
     data?: TData
     errors?: Array<{ message: string }>
 }
+
+const loginMutation = /* GraphQL */ `
+    mutation Login($username: String!, $password: String!) {
+        login(username: $username, password: $password) {
+            token
+            user {
+                id
+                name
+            }
+        }
+    }
+`
 
 const camerasQuery = /* GraphQL */ `
     query CamerasForCurrentUser {
@@ -38,17 +55,20 @@ const camerasQuery = /* GraphQL */ `
 `
 
 const getErrorMessage = (errors: GraphQLResponse<unknown>['errors']) =>
-    errors?.map((error) => error.message).join('\n') ?? 'Could not load cameras.'
+    errors?.map((error) => error.message).join('\n') ?? 'The backend request failed.'
 
-const fetchGraphQL = async <TData>(query: string, userId: string): Promise<TData> => {
+const fetchGraphQL = async <TData>(query: string, variables?: unknown, token?: string): Promise<TData> => {
+    const headers = new Headers({ 'content-type': 'application/json' })
+
+    if (token) {
+        // Only the opaque session token is sent after login. Passwords are never stored.
+        headers.set('authorization', `Bearer ${token}`)
+    }
+
     const response = await fetch(graphqlEndpoint, {
         method: 'POST',
-        headers: {
-            'content-type': 'application/json',
-            // The backend scopes all camera data from this logged-in user id.
-            'x-user-id': userId
-        },
-        body: JSON.stringify({ query })
+        headers,
+        body: JSON.stringify({ query, variables })
     })
 
     const result = (await response.json()) as GraphQLResponse<TData>
@@ -64,4 +84,7 @@ const fetchGraphQL = async <TData>(query: string, userId: string): Promise<TData
     return result.data
 }
 
-export const fetchCurrentUserCameras = (userId: string) => fetchGraphQL<CamerasResponse>(camerasQuery, userId)
+export const login = (username: string, password: string) =>
+    fetchGraphQL<{ login: AuthPayload }>(loginMutation, { username, password }).then((data) => data.login)
+
+export const fetchCurrentUserCameras = (token: string) => fetchGraphQL<CamerasResponse>(camerasQuery, undefined, token)

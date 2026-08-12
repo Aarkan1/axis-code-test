@@ -1,6 +1,7 @@
 import { FluentProvider, webLightTheme } from '@fluentui/react-components'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 
 import { App } from './App'
 import './styles.css'
@@ -14,7 +15,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
     <StrictMode>
         <FluentProvider theme={webLightTheme}>
-            <App />
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
         </FluentProvider>
     </StrictMode>
 )

@@ -26,12 +26,6 @@ body {
   gap: 8px;
 }
 
-.user-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .state-message {
   align-items: center;
   display: flex;
@@ -42,6 +36,15 @@ body {
 .state-card,
 .camera-card {
   padding: 16px;
+}
+
+.error-card {
+  background: #fdf3f4;
+  border-color: #d13438;
+}
+
+.error-text {
+  color: #b10e1c;
 }
 
 .camera-section {
@@ -58,4 +61,33 @@ body {
 
 .camera-address {
   color: #5f5f5f;
+}
+
+.dashboard-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.login-shell {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login-card {
+  max-width: 420px;
+  padding: 24px;
+  width: 100%;
+}
+
+.login-form,
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
