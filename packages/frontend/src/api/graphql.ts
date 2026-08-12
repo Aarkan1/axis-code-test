@@ -3,6 +3,7 @@ const graphqlEndpoint = 'http://localhost:4000/graphql'
 export type User = {
     id: string
     name: string
+    isAdmin: boolean
 }
 
 export type Camera = {
@@ -22,6 +23,15 @@ export type CamerasResponse = {
     cameras: Camera[]
 }
 
+export type AdminUser = User & {
+    cameras: Camera[]
+}
+
+export type AdminDataResponse = {
+    users: AdminUser[]
+    allCameras: Camera[]
+}
+
 type GraphQLResponse<TData> = {
     data?: TData
     errors?: Array<{ message: string }>
@@ -34,6 +44,7 @@ const loginMutation = /* GraphQL */ `
             user {
                 id
                 name
+                isAdmin
             }
         }
     }
@@ -44,12 +55,66 @@ const camerasQuery = /* GraphQL */ `
         me {
             id
             name
+            isAdmin
         }
         cameras {
             id
             name
             niceName
             address
+        }
+    }
+`
+
+const adminDataQuery = /* GraphQL */ `
+    query AdminData {
+        users {
+            id
+            name
+            isAdmin
+            cameras {
+                id
+                name
+                niceName
+                address
+            }
+        }
+        allCameras {
+            id
+            name
+            niceName
+            address
+        }
+    }
+`
+
+const addCameraMutation = /* GraphQL */ `
+    mutation AddCamera($userId: ID!, $name: String!, $niceName: String, $address: String!) {
+        addCamera(userId: $userId, name: $name, niceName: $niceName, address: $address) {
+            id
+            name
+            niceName
+            address
+        }
+    }
+`
+
+const addCameraToUserMutation = /* GraphQL */ `
+    mutation AddCameraToUser($userId: ID!, $cameraId: ID!) {
+        addCameraToUser(userId: $userId, cameraId: $cameraId) {
+            id
+            name
+            isAdmin
+        }
+    }
+`
+
+const removeCameraFromUserMutation = /* GraphQL */ `
+    mutation RemoveCameraFromUser($userId: ID!, $cameraId: ID!) {
+        removeCameraFromUser(userId: $userId, cameraId: $cameraId) {
+            id
+            name
+            isAdmin
         }
     }
 `
@@ -88,3 +153,14 @@ export const login = (username: string, password: string) =>
     fetchGraphQL<{ login: AuthPayload }>(loginMutation, { username, password }).then((data) => data.login)
 
 export const fetchCurrentUserCameras = (token: string) => fetchGraphQL<CamerasResponse>(camerasQuery, undefined, token)
+
+export const fetchAdminData = (token: string) => fetchGraphQL<AdminDataResponse>(adminDataQuery, undefined, token)
+
+export const addCamera = (token: string, input: Omit<Camera, 'id'> & { userId: string }) =>
+    fetchGraphQL<{ addCamera: Camera }>(addCameraMutation, input, token).then((data) => data.addCamera)
+
+export const addCameraToUser = (token: string, userId: string, cameraId: string) =>
+    fetchGraphQL(addCameraToUserMutation, { userId, cameraId }, token)
+
+export const removeCameraFromUser = (token: string, userId: string, cameraId: string) =>
+    fetchGraphQL(removeCameraFromUserMutation, { userId, cameraId }, token)
