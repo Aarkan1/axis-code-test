@@ -70,6 +70,11 @@ body {
   justify-content: space-between;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
 .login-shell {
   align-items: center;
   box-sizing: border-box;
@@ -90,4 +95,34 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.admin-actions,
+.admin-users {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.admin-card,
+.admin-form,
+.admin-camera-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-camera-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+select {
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  min-height: 32px;
+  padding: 4px 8px;
 }
