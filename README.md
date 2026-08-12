@@ -23,8 +23,8 @@ If you run into any issues or have questions don't hesitate to contact the techn
 
 - Extend the existing GraphQL server to map Users to specific Cameras.
   - Keep in mind that you should be able to log in using a User in Task 2.
-- Add funtionality to add a camera to a User
-- Add funtionality to remove a camera from a User
+- Add functionality to add a camera to a User
+- Add functionality to remove a camera from a User
 
 ## Task 2: Create a React app that consumes the previous GraphQL-API
 
