@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto'
 export type User = {
     id: string
     name: string
+    isAdmin: boolean
 }
 
 export type Camera = {
@@ -29,8 +30,9 @@ type Session = {
 }
 
 const users: User[] = [
-    { id: '0', name: 'Alice' },
-    { id: '1', name: 'Bob' }
+    { id: '0', name: 'Alice', isAdmin: false },
+    { id: '1', name: 'Bob', isAdmin: false },
+    { id: '2', name: 'Admin', isAdmin: true }
 ]
 
 const credentials: Credential[] = [
@@ -43,6 +45,11 @@ const credentials: Credential[] = [
         userId: '1',
         username: 'bob',
         passwordHash: 'df53c27a66157885ba143e34f25d6380e12168b0f7da4f0c46efa54cd9a083b7' // bob-password
+    },
+    {
+        userId: '2',
+        username: 'admin',
+        passwordHash: '8e70fdbd0400b7a21539fd15fb4ab86c129f7cbd99261dbb0d95c18df8dec177' // admin-password
     }
 ]
 
@@ -69,6 +76,8 @@ let userCameras: UserCamera[] = [
 const hashPassword = (password: string) => createHash('sha256').update(password).digest('hex')
 
 export const getUser = (userId: string) => users.find((user) => user.id === userId)
+
+export const getUsers = () => users
 
 export const getUserBySessionToken = (token?: string) => {
     const session = sessions.find((currentSession) => currentSession.token === token)
@@ -98,6 +107,8 @@ export const loginUser = (username: string, password: string) => {
 }
 
 export const getCamera = (cameraId: string) => cameras.find((camera) => camera.id === cameraId)
+
+export const getCameras = () => cameras
 
 export const getCamerasForUser = (userId: string) => {
     const cameraIds = userCameras

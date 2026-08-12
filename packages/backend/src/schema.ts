@@ -3,11 +3,13 @@ import { createSchema } from 'graphql-yoga'
 
 import {
     addCameraToUser,
-    cameraBelongsToAnotherUser,
     createCameraForUser,
     getCamera,
+    getCameras,
     getCamerasForUser,
+    getUser,
     getUserBySessionToken,
+    getUsers,
     loginUser,
     removeCameraFromUser,
     userHasCamera,
@@ -24,13 +26,15 @@ const typeDefinition = /* GraphQL */ `
         me: User!
         cameras: [Camera!]!
         camera(id: ID!): Camera
+        users: [User!]!
+        allCameras: [Camera!]!
     }
 
     type Mutation {
         login(username: String!, password: String!): AuthPayload!
-        addCamera(name: String!, niceName: String, address: String!): Camera!
-        addCameraToUser(cameraId: ID!): User!
-        removeCameraFromUser(cameraId: ID!): User!
+        addCamera(userId: ID!, name: String!, niceName: String, address: String!): Camera!
+        addCameraToUser(userId: ID!, cameraId: ID!): User!
+        removeCameraFromUser(userId: ID!, cameraId: ID!): User!
     }
 
     type AuthPayload {
@@ -41,6 +45,7 @@ const typeDefinition = /* GraphQL */ `
     type User {
         id: ID!
         name: String!
+        isAdmin: Boolean!
         cameras: [Camera!]!
     }
 
@@ -57,11 +62,36 @@ type LoginArgs = {
     password: string
 }
 
+type UserCameraArgs = {
+    userId: string
+    cameraId: string
+}
+
 const getCurrentUser = (context: BackendContext) => {
     const user = getUserBySessionToken(context.sessionToken)
 
     if (!user) {
         throw new GraphQLError('You must be logged in to access cameras.')
+    }
+
+    return user
+}
+
+const getCurrentAdmin = (context: BackendContext) => {
+    const user = getCurrentUser(context)
+
+    if (!user.isAdmin) {
+        throw new GraphQLError('You must be an admin to manage cameras.')
+    }
+
+    return user
+}
+
+const getTargetUser = (userId: string) => {
+    const user = getUser(userId)
+
+    if (!user) {
+        throw new GraphQLError('User not found.')
     }
 
     return user
@@ -80,6 +110,16 @@ const resolvers = {
 
             // Return null instead of another user's camera.
             return userHasCamera(user.id, args.id) ? getCamera(args.id) : null
+        },
+        users: (_parent: unknown, _args: unknown, context: BackendContext) => {
+            getCurrentAdmin(context)
+
+            return getUsers()
+        },
+        allCameras: (_parent: unknown, _args: unknown, context: BackendContext) => {
+            getCurrentAdmin(context)
+
+            return getCameras()
         }
     },
     Mutation: {
@@ -92,29 +132,29 @@ const resolvers = {
 
             return session
         },
-        addCamera: (_parent: unknown, args: Omit<Camera, 'id'>, context: BackendContext) => {
-            const user = getCurrentUser(context)
+        addCamera: (_parent: unknown, args: Omit<Camera, 'id'> & { userId: string }, context: BackendContext) => {
+            getCurrentAdmin(context)
+            const user = getTargetUser(args.userId)
+            const { userId: _userId, ...cameraArgs } = args
 
-            return createCameraForUser(user.id, args)
+            return createCameraForUser(user.id, cameraArgs)
         },
-        addCameraToUser: (_parent: unknown, args: { cameraId: string }, context: BackendContext) => {
-            const user = getCurrentUser(context)
+        addCameraToUser: (_parent: unknown, args: UserCameraArgs, context: BackendContext) => {
+            getCurrentAdmin(context)
+            const user = getTargetUser(args.userId)
             const camera = getCamera(args.cameraId)
 
             if (!camera) {
                 throw new GraphQLError('Camera not found.')
             }
 
-            if (cameraBelongsToAnotherUser(user.id, camera.id)) {
-                throw new GraphQLError('You cannot add another user\'s camera.')
-            }
-
             addCameraToUser(user.id, camera.id)
 
             return user
         },
-        removeCameraFromUser: (_parent: unknown, args: { cameraId: string }, context: BackendContext) => {
-            const user = getCurrentUser(context)
+        removeCameraFromUser: (_parent: unknown, args: UserCameraArgs, context: BackendContext) => {
+            getCurrentAdmin(context)
+            const user = getTargetUser(args.userId)
 
             removeCameraFromUser(user.id, args.cameraId)
 
