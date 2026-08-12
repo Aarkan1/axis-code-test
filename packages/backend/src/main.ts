@@ -2,11 +2,19 @@ import { schema, type BackendContext } from "./schema"
 import { createYoga } from "graphql-yoga"
 import { createServer } from "node:http"
 
+const getBearerToken = (authorization: string | null) => {
+    if (!authorization?.startsWith('Bearer ')) {
+        return undefined
+    }
+
+    return authorization.slice('Bearer '.length)
+}
+
 const yoga = createYoga<BackendContext>({
     schema,
     context: ({ request }) => ({
-        // The frontend sends this after login. Resolvers use it to scope data.
-        currentUserId: request.headers.get('x-user-id') ?? undefined
+        // The frontend stores only this opaque token after login.
+        sessionToken: getBearerToken(request.headers.get('authorization'))
     })
 })
 const server = createServer(yoga)
